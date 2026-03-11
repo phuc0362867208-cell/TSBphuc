@@ -493,111 +493,6 @@ RunService.Heartbeat:Connect(function()
 end)
 
 
--- LEVEL 1 (giảm nhẹ)
-local function FixLag1()
-
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level06
-
-end
-
-
--- LEVEL 2 (tắt shadow)
-local function FixLag2()
-
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level04
-
-    local Lighting = game:GetService("Lighting")
-    Lighting.GlobalShadows = false
-
-end
-
-
--- LEVEL 3 (xóa hiệu ứng)
-local function FixLag3()
-
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level02
-
-    for _,v in pairs(game:GetDescendants()) do
-        if v:IsA("ParticleEmitter")
-        or v:IsA("Trail")
-        or v:IsA("Smoke")
-        or v:IsA("Fire")
-        or v:IsA("Sparkles") then
-            v.Enabled = false
-        end
-    end
-
-end
-
-
--- LEVEL 4 (đổi material nhẹ)
-local function FixLag4()
-
-    for _,v in pairs(workspace:GetDescendants()) do
-        if v:IsA("BasePart") then
-            v.Material = Enum.Material.SmoothPlastic
-            v.Reflectance = 0
-        end
-    end
-
-end
-
-
--- LEVEL 5 (FIX LAG CỰC MAX)
-local function FixLag5()
-
-    for _,v in pairs(workspace:GetDescendants()) do
-        if v:IsA("BasePart") then
-
-            if v.Position.Y > 5 then
-                v.Transparency = 1
-                v.CanCollide = false
-            else
-                v.Color = Color3.fromRGB(120,120,120)
-                v.Material = Enum.Material.SmoothPlastic
-            end
-
-        end
-    end
-
-end
-
-
--- LEVEL 6 (MAXX HƠN NỮA)
-local function FixLag6()
-
-    for _,v in pairs(workspace:GetDescendants()) do
-
-        if v:IsA("BasePart") then
-            v.Transparency = 1
-            v.CanCollide = false
-        end
-
-        if v:IsA("ParticleEmitter")
-        or v:IsA("Trail")
-        or v:IsA("Smoke")
-        or v:IsA("Fire")
-        or v:IsA("Sparkles") then
-            v.Enabled = false
-        end
-
-        if v:IsA("Decal")
-        or v:IsA("Texture") then
-            v:Destroy()
-        end
-
-    end
-
-    local Lighting = game:GetService("Lighting")
-
-    Lighting.Brightness = 0
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 100000
-
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-
-end
-
 local StatsEnabled = false
 local StatsGui
 
@@ -650,24 +545,45 @@ local function createStatsUI()
     Ping.Parent = Frame
 
 
-    -- UPDATE FPS + PING
+    -----------------------
+    -- FPS + PING UPDATE
+    -----------------------
+
+    local lastTime = tick()
+    local frameCount = 0
+
     RunService.RenderStepped:Connect(function()
 
         if not StatsEnabled then return end
 
-        local fps = math.floor(1 / RunService.RenderStepped:Wait())
-        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        frameCount += 1
 
-        FPS.Text = "FPS : "..fps
-        Ping.Text = "Ping : "..ping.." ms"
+        if tick() - lastTime >= 1 then
+
+            local fps = frameCount
+            frameCount = 0
+            lastTime = tick()
+
+            local ping = math.floor(
+                Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+            )
+
+            FPS.Text = "FPS : "..fps
+            Ping.Text = "Ping : "..ping.." ms"
+
+        end
 
     end)
 
 
+    -----------------------
     -- DRAG UI
+    -----------------------
+
     local dragging = false
     local dragStart
     local startPos
+    local dragInput
 
     Frame.InputBegan:Connect(function(input)
 
@@ -699,7 +615,7 @@ local function createStatsUI()
 
     UIS.InputChanged:Connect(function(input)
 
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        if input == dragInput and dragging then
 
             local delta = input.Position - dragStart
 
@@ -716,18 +632,32 @@ local function createStatsUI()
 
 end
 
+local AntiShake = false
+
+RunService.RenderStepped:Connect(function()
+
+    if not AntiShake then return end
+
+    local cam = workspace.CurrentCamera
+
+    if cam then
+        cam.CFrame = CFrame.new(cam.CFrame.Position, cam.CFrame.Position + cam.CFrame.LookVector)
+    end
+
+end)
+
 -- WINDOW
 local Window = WindUI:CreateWindow({
 Title = "PHUCMAX",
-Icon = "rbxassetid://103302974191559",
-Author = "by PHUCMAX",
-Folder = "TSB",
+Icon = "rbxassetid://138311826892324",
+Author = "by phucmax",
+Folder = "PHUCMAX TSB VIP",
 Size = UDim2.fromOffset(580, 340),
 Transparent = true,
 Theme = "Dark",
 Resizable = true,
 SideBarWidth = 150,
-Background = "rbxassetid://103302974191559",
+Background = "rbxassetid://104878938115988",
 BackgroundImageTransparency = 0.42,
 HideSearchBar = false,
 ScrollBarEnabled = false,
@@ -735,8 +665,8 @@ User = { Enabled = true, Anonymous = false },
 })
 
 Window:EditOpenButton({
-Title = "Open Example UI",
-Icon = "rbxassetid://111450164466537",
+Title = "Open  UI",
+Icon = "rbxassetid://138311826892324",
 CornerRadius = UDim.new(0,16),
 StrokeThickness = 2,
 Color = ColorSequence.new(
@@ -748,9 +678,10 @@ Draggable = true,
 
 
 local Tabs = {
-Info = Window:Tab({ Title = "Info", Icon = "ghost" }),
-Main = Window:Tab({ Title = "Main", Icon = "gem" }),
-Fixlag = Window:Tab({ Title = "Fixlag", Icon = "cog" }),
+    Info = Window:Tab({ Title = "Info", Icon = "ghost" }),
+    Main = Window:Tab({ Title = "Main", Icon = "gem" }),
+    Fixlag = Window:Tab({ Title = "Fixlag", Icon = "cog" })
+}
 
 
 local InfoTab = Tabs.Info
@@ -764,7 +695,7 @@ InfoTab:Button({
     Desc = " copy link Discord",
     Callback = function()
 
-        local link = "https://discord.gg/yourserver"
+        local link = "https://discord.gg/A25WZXtRSG"
 
         if setclipboard then
             setclipboard(link)
@@ -778,15 +709,38 @@ InfoTab:Button({
 })
 
 
+InfoTab:Button({
+    Title = "Copy Link Tiktok",
+    Desc = " copy link Tiktok",
+    Callback = function()
+
+        local link = "https://www.tiktok.com/@phucmaxreal?_r=1&_t=ZS-94boAOVrSqn"
+
+        if setclipboard then
+            setclipboard(link)
+        elseif toclipboard then
+            toclipboard(link)
+        end
+
+        print("Đã copy link TIKTOK:", link)
+
+    end
+})
+
+
 
 local MainTab = Tabs.Main
 
 MainTab:Button({
-    Title = "Run Camlock ",
-    Desc = "camlock",
+    Title = "Run Camlock",
+    Desc = "Camlock ",
     Callback = function()
 
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/phuc0362867208-cell/TSBphuc/main/camlock.lua"))()
+        print("Đang load Camlock...")
+
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/phuc0362867208-cell/TSBphuc/refs/heads/main/camlock.lua"))()
+
+        print("Camlock Loaded!")
 
     end
 })
@@ -1043,7 +997,24 @@ MainTab:Toggle({
     end
 })
 
-Fixlag:Toggle({
+local FixlagTab = Tabs.Fixlag
+
+FixlagTab:Toggle({
+    Title = "chống rung cam ",
+    Default = false,
+    Callback = function(state)
+
+        AntiShake = state
+
+    end
+})
+
+FixlagTab:Section({
+    Title = "Fix Lag System"
+})
+
+-- SHOW FPS PING
+FixlagTab:Toggle({
     Title = "Show FPS & Ping",
     Default = false,
     Callback = function(state)
@@ -1060,11 +1031,130 @@ Fixlag:Toggle({
     end
 })
 
-Fixlag:Button({Title="FixLag Level 1", Callback=function() FixLag1() end})
-Fixlag:Button({Title="FixLag Level 2", Callback=function() FixLag2() end})
-Fixlag:Button({Title="FixLag Level 3", Callback=function() FixLag3() end})
-Fixlag:Button({Title="FixLag Level 4", Callback=function() FixLag4() end})
-Fixlag:Button({Title="FixLag Level 5 ", Callback=function() FixLag5() end})
-Fixlag:Button({Title="FixLag Level 6 ", Callback=function() FixLag6() end})
+--------------------------------------------------
+-- FIXLAG LEVEL 1
+--------------------------------------------------
 
+FixlagTab:Button({
+    Title = "FixLag Level 1",
+    Callback = function()
 
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level06
+
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:IsA("TreeMesh") or v.Name:lower():find("tree") then
+                v:Destroy()
+            end
+        end
+
+    end
+})
+
+--------------------------------------------------
+-- FIXLAG LEVEL 2
+--------------------------------------------------
+
+FixlagTab:Button({
+    Title = "FixLag Level 2",
+    Callback = function()
+
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level04
+        game:GetService("Lighting").GlobalShadows = false
+
+    end
+})
+
+--------------------------------------------------
+-- FIXLAG LEVEL 3
+--------------------------------------------------
+
+FixlagTab:Button({
+    Title = "FixLag Level 3",
+    Callback = function()
+
+        for _,v in pairs(game:GetDescendants()) do
+            if v:IsA("ParticleEmitter")
+            or v:IsA("Trail")
+            or v:IsA("Smoke")
+            or v:IsA("Fire")
+            or v:IsA("Sparkles") then
+                v.Enabled = false
+            end
+        end
+
+    end
+})
+
+--------------------------------------------------
+-- FIXLAG LEVEL 4
+--------------------------------------------------
+
+FixlagTab:Button({
+    Title = "FixLag Level 4",
+    Callback = function()
+
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Reflectance = 0
+            end
+        end
+
+    end
+})
+
+--------------------------------------------------
+-- FIXLAG LEVEL 5
+--------------------------------------------------
+
+FixlagTab:Button({
+    Title = "FixLag Level 5",
+    Callback = function()
+
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Color = Color3.fromRGB(80,80,80)
+            end
+        end
+
+    end
+})
+
+--------------------------------------------------
+-- FIXLAG LEVEL 6 (MAX)
+--------------------------------------------------
+
+FixlagTab:Button({
+    Title = "FixLag Level 6",
+    Callback = function()
+
+        local Lighting = game:GetService("Lighting")
+
+        for _,v in pairs(workspace:GetDescendants()) do
+
+            if v:IsA("BasePart") then
+
+                if v.Position.Y > 5 then
+                    v.Transparency = 1
+                    v.CanCollide = true
+                else
+                    v.Color = Color3.fromRGB(120,120,120)
+                    v.Material = Enum.Material.SmoothPlastic
+                end
+
+            end
+
+            if v:IsA("Decal") or v:IsA("Texture") then
+                v:Destroy()
+            end
+
+        end
+
+        Lighting.Brightness = 0
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 100000
+
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
+    end
+})
