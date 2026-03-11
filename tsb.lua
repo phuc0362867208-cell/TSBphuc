@@ -719,7 +719,7 @@ end
 -- WINDOW
 local Window = WindUI:CreateWindow({
 Title = "PHUCMAX",
-Icon = "rbxassetid://107125521859986",
+Icon = "rbxassetid://103302974191559",
 Author = "by PHUCMAX",
 Folder = "TSB",
 Size = UDim2.fromOffset(580, 340),
@@ -727,7 +727,7 @@ Transparent = true,
 Theme = "Dark",
 Resizable = true,
 SideBarWidth = 150,
-Background = "rbxassetid://107125521859986",
+Background = "rbxassetid://103302974191559",
 BackgroundImageTransparency = 0.42,
 HideSearchBar = false,
 ScrollBarEnabled = false,
@@ -1066,4 +1066,5 @@ Fixlag:Button({Title="FixLag Level 3", Callback=function() FixLag3() end})
 Fixlag:Button({Title="FixLag Level 4", Callback=function() FixLag4() end})
 Fixlag:Button({Title="FixLag Level 5 ", Callback=function() FixLag5() end})
 Fixlag:Button({Title="FixLag Level 6 ", Callback=function() FixLag6() end})
+
 
